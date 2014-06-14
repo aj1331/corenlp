@@ -66,10 +66,10 @@ class Document:
         end = mention.end
         for t in self.sents[sent].tokens[start:end]:
             tokens.append(t._surface)
-        return u' '.join(tokens)
+        return ' '.join(tokens)
 
     def __str__(self):
-        return u'\n'.join([unicode(s) for s in self.sents])        
+        return '\n'.join([str(s) for s in self.sents])        
 
 class Sentence:
     def __init__(self, tokens, parse,
@@ -100,18 +100,18 @@ class Sentence:
         tokstrings = []
         prev_offset = self[0].char_offset_begin
         for t in self.tokens:
-            space = u' ' * (t.char_offset_begin - prev_offset)
-            tokstrings.append(unicode(space))
+            space = ' ' * (t.char_offset_begin - prev_offset)
+            tokstrings.append(str(space))
             tokstrings.append(t._surface)
             prev_offset = t.char_offset_end
-        return u''.join(tokstrings)
+        return ''.join(tokstrings)
 
     def __repr__(self):
-        return u'Sentence ({}) {}'.format(self.idx, unicode(self))
+        return 'Sentence ({}) {}'.format(self.idx, str(self))
     
     def pos_str(self):
-        tokstrs = [u'{}/{}'.format(t._surface, t.pos) for t in self.tokens]
-        return u' '.join(tokstrs)
+        tokstrs = ['{}/{}'.format(t._surface, t.pos) for t in self.tokens]
+        return ' '.join(tokstrs)
 
     def dep_graph(self):
         if self.deps is None:
@@ -191,7 +191,7 @@ class DependencyGraph:
         G=pgv.AGraph()
                 
         for rel in self:
-            G.add_edge(unicode(rel.dep), unicode(rel.gov), label=rel.type)    
+            G.add_edge(str(rel.dep), str(rel.gov), label=rel.type)    
         
         G.layout(prog='dot')
         G.draw('/tmp/deptree.png')
@@ -283,26 +283,26 @@ def _parse_source(source, use_pos=True, use_lemma=True, use_ner=True,
                     _current_deps = None
         else:
             if elem.tag == 'word':
-               _word = unicode(elem.text)
-               if _word == u'-LRB-':
-                   _word = u'('
-               elif _word == u'-RRB-':
-                   _word = u')'
-               elif _word == u'-LCB-':
-                   _word = u'{'
-               elif _word == u'-RCB-':
-                   _word = u'}'
-               elif _word == u'-LSB-':
-                   _word = u'['
-               elif _word == u'-RSB-':
-                   _word = u']'
+               _word = str(elem.text)
+               if _word == '-LRB-':
+                   _word = '('
+               elif _word == '-RRB-':
+                   _word = ')'
+               elif _word == '-LCB-':
+                   _word = '{'
+               elif _word == '-RCB-':
+                   _word = '}'
+               elif _word == '-LSB-':
+                   _word = '['
+               elif _word == '-RSB-':
+                   _word = ']'
 
             elif elem.tag == 'lemma' and use_lemma:
-                _lemma = unicode(elem.text)
+                _lemma = str(elem.text)
             elif elem.tag == 'POS' and use_pos:
-                _pos = unicode(elem.text)
+                _pos = str(elem.text)
             elif elem.tag == 'NER' and use_ner:
-                _ner = unicode(elem.text)
+                _ner = str(elem.text)
             elif elem.tag == 'CharacterOffsetBegin':
                 _char_offset_begin = int(elem.text)
             elif elem.tag == 'CharacterOffsetEnd':
@@ -326,7 +326,7 @@ def _parse_source(source, use_pos=True, use_lemma=True, use_ner=True,
 
             # Recover Parse Tree here.
             elif elem.tag == 'parse' and use_parse:
-                _parse = nltk.tree.Tree(unicode(elem.text))
+                _parse = nltk.tree.Tree(str(elem.text))
 
             # Recover dependencies here.
             elif elem.tag == 'governor' and _current_deps is not None:
@@ -341,7 +341,7 @@ def _parse_source(source, use_pos=True, use_lemma=True, use_ner=True,
                 if idx > -1:
                     _dependent = _tokens[idx]
             elif elem.tag == 'dep' and _current_deps is not None:
-                rel = unicode(elem.attrib['type'])
+                rel = str(elem.attrib['type'])
                 typed_dep = TypedDependency(_dependent, _governor, rel)
                 _current_deps.append(typed_dep)
 
