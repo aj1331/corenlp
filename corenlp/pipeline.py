@@ -25,8 +25,6 @@ def dir2dir(in_dir, out_dir=None, annotators=None, mem=None,
 def files2dir(files, out_dir=None, annotators=None,
               mem=None, libdir=None, libver=None, threads=None):
     
-    filelist = _build_filelist(files)    
-
     if out_dir is None:
         out_dir = '.'    
     if not os.path.exists(out_dir):
@@ -52,16 +50,24 @@ def files2dir(files, out_dir=None, annotators=None,
     if not os.path.exists(out_dir):
         os.makedirs(out_dir)
     
-    cmd = 'java -Xmx{} -cp {} {} '\
-          '-annotators {} -filelist {} '\
-          '-outputDirectory {} -threads {} '\
-          '-replaceExtension'.format(mem, cpath, 
+    # A NamedTemporaryFile on windows can only be accessed by the 
+    # process that created it. Manually deleting the file works around
+    # this limitation.
+    try:
+        filelist = _build_filelist(files)    
+    
+        cmd = 'java -Xmx{} -cp {} {} '\
+            '-annotators {} -filelist {} '\
+            '-outputDirectory {} -threads {} '\
+            '-replaceExtension'.format(mem, cpath, 
                                      _pipeline_class,
                                      ','.join(annotators),
                                      filelist.name, out_dir,
                                      threads)
-    subprocess.check_output(cmd, shell=True)
-    filelist.close()
+        
+        subprocess.check_output(cmd, shell=True)
+    finally:
+        os.remove(filelist.name)
  
 
 def _build_classpath(libdir, libver):
@@ -81,14 +87,20 @@ def _build_classpath(libdir, libver):
             sys.stderr.write('Fatal Error: could not locate corenlp jar {}\n'.format(jarpath))
             sys.stderr.flush()
             sys.exit()
-        jarpaths.append(jarpath)
+        # Wrap jar paths in quotes so that spaces in paths don't cause
+        # problems.
+        jarpaths.append('"' + jarpath + '"')
+    if os.name == 'nt':
+        # Java on windows expects a semicolon between jar paths instead
+        # of a colon.
+        return ';'.join(jarpaths)
     return ':'.join(jarpaths)
 
 def _build_filelist(filepaths):
     
-    filelist = tempfile.NamedTemporaryFile()
+    filelist = tempfile.NamedTemporaryFile(delete=False)
     for filepath in filepaths:
-        filelist.write(filepath)
-        filelist.write('\n')
-    filelist.flush()
+        filelist.write(filepath.encode('utf_8'))
+        filelist.write(b'\n')
+    filelist.close()
     return filelist
