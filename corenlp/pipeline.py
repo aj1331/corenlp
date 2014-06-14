@@ -4,7 +4,7 @@ import subprocess
 
 _default_annotators = ['tokenize', 'ssplit', 'pos', 'lemma', 'ner', 'parse', 'dcoref']
 _default_mem = '2500m'
-_default_libver = '3.2.0'
+_default_libver = '3.3.1'
 _default_threads = 1
 _pipeline_class = 'edu.stanford.nlp.pipeline.StanfordCoreNLP'
 
